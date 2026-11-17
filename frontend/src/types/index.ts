@@ -13,6 +13,7 @@ export interface Task {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
+  category?: string;
   dueDate: string;
   userId: string;
   isOverdue: boolean;
@@ -49,6 +50,16 @@ export interface PriorityDistribution {
   percentage: number;
 }
 
+export interface MonthlyActivityItem {
+  month: string;
+  monthIndex: number;
+  year: number;
+  approved: number;
+  reviewed: number;
+  todo: number;
+  total: number;
+}
+
 export interface DashboardStats {
   totalTasks: number;
   completedTasks: number;
@@ -65,6 +76,9 @@ export interface TaskQueryParams {
   limit?: number;
   status?: TaskStatus;
   priority?: TaskPriority;
+  category?: string;
+  dueDateFrom?: string;
+  dueDateTo?: string;
   search?: string;
   sortBy?: 'dueDate' | 'createdAt' | 'title' | 'priority';
   sortOrder?: 'asc' | 'desc';
@@ -75,6 +89,7 @@ export interface CreateTaskInput {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  category?: string;
   dueDate: string;
 }
 
@@ -83,5 +98,6 @@ export interface UpdateTaskInput {
   description?: string;
   status?: TaskStatus;
   priority?: TaskPriority;
+  category?: string;
   dueDate?: string;
 }

@@ -4,74 +4,98 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Task } from '../../types';
 import { formatDate } from '../../lib/utils';
-import { ChevronDown, ArrowUpRight } from 'lucide-react';
+import { ChevronDown, ArrowUpRight, Plus } from 'lucide-react';
+import { useTaskStore } from '../../store/taskStore';
+import { useAuthStore } from '../../store/authStore';
+import { format } from 'date-fns';
 
 interface RecentTasksCardProps {
   tasks: Task[];
 }
 
 export function RecentTasksCard({ tasks }: RecentTasksCardProps) {
-  // Mock assignees to give realistic visual polish matching Image 1
-  const assignees = [
-    {
-      name: 'Jaylon Dias',
-      role: 'Technical writer',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces',
-    },
-    {
-      name: 'Gretchen Vetrovs',
-      role: 'Technical writer',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
-    },
-    {
-      name: 'Ahmad Geidt',
-      role: 'Technical writer',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
-    },
-    {
-      name: 'Angel Donin',
-      role: 'UI Designer',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=faces',
-    },
-  ];
+  const { setSelectedTask, setIsModalOpen } = useTaskStore();
+  const { user } = useAuthStore();
+
+  const handleRowClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenCreate = () => {
+    setSelectedTask(null);
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-xs border border-slate-100">
       {/* Header matching Image 1 */}
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-base font-bold text-slate-900">Task review List</h3>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-          This Month <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-        </button>
+        <div>
+          <h3 className="text-base font-bold text-slate-900">Task review List</h3>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Recently submitted and active tasks
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-xs font-bold transition-all shadow-sm"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Task
+          </button>
+          <Link
+            href="/tasks"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            View All <ArrowUpRight className="h-3.5 w-3.5 text-slate-400" />
+          </Link>
+        </div>
       </div>
 
       {tasks.length === 0 ? (
-        <div className="py-12 text-center text-xs text-slate-400">
-          No tasks in review. Create a task from My Tasks to populate this list.
+        <div className="py-12 flex flex-col items-center justify-center text-center text-xs text-slate-400">
+          <p className="mb-2">No tasks in review yet.</p>
+          <button
+            onClick={handleOpenCreate}
+            className="text-xs font-bold text-[#7C3AED] hover:underline"
+          >
+            Create your first task now →
+          </button>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-100 text-slate-400 font-medium">
-                <th className="pb-3 font-semibold pl-2">Task Name</th>
-                <th className="pb-3 font-semibold">Assignee</th>
-                <th className="pb-3 font-semibold">Submitted On</th>
-                <th className="pb-3 font-semibold">Priority</th>
-                <th className="pb-3 font-semibold">Due Date</th>
-                <th className="pb-3 font-semibold text-right pr-2">Status</th>
+              <tr className="border-b border-slate-100 text-slate-400 font-semibold bg-slate-50/30">
+                <th className="py-3 pl-3 font-semibold">Task Name</th>
+                <th className="py-3 font-semibold">Assignee</th>
+                <th className="py-3 font-semibold">Submitted On</th>
+                <th className="py-3 font-semibold">Priority</th>
+                <th className="py-3 font-semibold">Due Date</th>
+                <th className="py-3 font-semibold text-right pr-3">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {tasks.map((task, idx) => {
-                const assignee = assignees[idx % assignees.length];
-                const submittedDate = '01/12/2025 2:30:00 PM';
+              {tasks.slice(0, 6).map((task) => {
+                // Real submitted date
+                let submittedDate = 'Recently';
+                try {
+                  const d = new Date(task.createdAt);
+                  if (!isNaN(d.getTime())) {
+                    submittedDate = format(d, 'dd/MM/yyyy h:mm a');
+                  }
+                } catch {
+                  // ignore
+                }
 
                 // Priority styling matching Image 1
                 const priorityStyles: Record<string, string> = {
                   LOW: 'text-slate-600 bg-slate-50 border-slate-200',
                   MEDIUM: 'text-[#2563EB] bg-[#EFF6FF] border-[#BFDBFE]',
-                  HIGH: 'text-[#16A34A] bg-[#F0FDF4] border-[#BBF7D0]',
+                  HIGH: 'text-[#DC2626] bg-[#FEF2F2] border-[#FECACA]',
                 };
 
                 // Status pill badge matching Image 1
@@ -81,7 +105,7 @@ export function RecentTasksCard({ tasks }: RecentTasksCardProps) {
                     cls: 'bg-[#FEF3C7] text-[#D97706] border-[#FDE68A]',
                   },
                   IN_PROGRESS: {
-                    label: 'Revision Needed',
+                    label: 'In Progress',
                     cls: 'bg-[#FFEDD5] text-[#EA580C] border-[#FED7AA]',
                   },
                   COMPLETED: {
@@ -95,46 +119,45 @@ export function RecentTasksCard({ tasks }: RecentTasksCardProps) {
                 return (
                   <tr
                     key={task._id}
-                    className="hover:bg-slate-50/70 transition-colors group"
+                    onClick={() => handleRowClick(task)}
+                    className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                   >
-                    {/* Task Name & subtitle */}
-                    <td className="py-4 pl-2 pr-4">
-                      <p className="font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
+                    {/* Task Name & category */}
+                    <td className="py-3.5 pl-3 pr-4">
+                      <p className="font-bold text-slate-900 group-hover:text-[#7C3AED] transition-colors line-clamp-1">
                         {task.title}
                       </p>
                       <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                        {task.description || 'Update and verify documentation for release'}
+                        {task.description || (task.category ? `Category: ${task.category}` : 'Task details')}
                       </p>
                     </td>
 
-                    {/* Assignee Avatar + Role matching Image 1 */}
-                    <td className="py-4 pr-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <img
-                          src={assignee.avatar}
-                          alt={assignee.name}
-                          className="h-8 w-8 rounded-full object-cover ring-1 ring-slate-200"
-                        />
+                    {/* Assignee */}
+                    <td className="py-3.5 pr-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#7C3AED] text-white font-bold text-[10px] uppercase">
+                          {user?.name ? user.name.slice(0, 2) : 'TF'}
+                        </div>
                         <div>
                           <p className="font-bold text-slate-800 leading-tight">
-                            {assignee.name}
+                            {user?.name || 'Assignee'}
                           </p>
-                          <p className="text-[11px] text-slate-400 leading-tight">
-                            {assignee.role}
+                          <p className="text-[10px] text-slate-400 leading-tight">
+                            Engineer
                           </p>
                         </div>
                       </div>
                     </td>
 
                     {/* Submitted On Date */}
-                    <td className="py-4 pr-4 whitespace-nowrap text-slate-600 font-medium text-[11px]">
+                    <td className="py-3.5 pr-4 whitespace-nowrap text-slate-600 font-medium text-[11px]">
                       {submittedDate}
                     </td>
 
                     {/* Priority Pill matching Image 1 */}
-                    <td className="py-4 pr-4 whitespace-nowrap">
+                    <td className="py-3.5 pr-4 whitespace-nowrap">
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold border ${
+                        className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
                           priorityStyles[task.priority] || priorityStyles.MEDIUM
                         }`}
                       >
@@ -147,12 +170,14 @@ export function RecentTasksCard({ tasks }: RecentTasksCardProps) {
                     </td>
 
                     {/* Due Date */}
-                    <td className="py-4 pr-4 whitespace-nowrap text-slate-600 font-medium">
-                      {formatDate(task.dueDate)}
+                    <td className="py-3.5 pr-4 whitespace-nowrap text-slate-600 font-medium">
+                      <span className={task.isOverdue ? 'text-rose-600 font-bold' : ''}>
+                        {formatDate(task.dueDate)}
+                      </span>
                     </td>
 
                     {/* Status Pill matching Image 1 */}
-                    <td className="py-4 pr-2 text-right whitespace-nowrap">
+                    <td className="py-3.5 pr-3 text-right whitespace-nowrap">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold border ${statusInfo.cls}`}
                       >

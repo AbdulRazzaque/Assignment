@@ -1,9 +1,14 @@
 import { apiClient } from '../lib/axios';
-import { ApiResponse, DashboardStats, Task } from '../types';
+import { ApiResponse, DashboardStats, MonthlyActivityItem, Task } from '../types';
 
 export const dashboardService = {
   async getStats(): Promise<DashboardStats> {
     const response = await apiClient.get<ApiResponse<DashboardStats>>('/dashboard/stats');
+    return response.data.data;
+  },
+
+  async getActivity(): Promise<MonthlyActivityItem[]> {
+    const response = await apiClient.get<ApiResponse<MonthlyActivityItem[]>>('/dashboard/activity');
     return response.data.data;
   },
 

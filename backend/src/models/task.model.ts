@@ -7,6 +7,7 @@ export interface ITaskDocument extends Document {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  category: string;
   dueDate: Date;
   userId: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -44,6 +45,13 @@ const TaskSchema = new Schema<ITaskDocument>(
         message: '{VALUE} is not a valid task priority',
       },
       default: 'MEDIUM',
+      index: true,
+    },
+    category: {
+      type: String,
+      trim: true,
+      default: 'General',
+      maxlength: [50, 'Category cannot exceed 50 characters'],
       index: true,
     },
     dueDate: {

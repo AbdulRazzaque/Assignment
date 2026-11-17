@@ -44,4 +44,17 @@ export class DashboardController {
       next(error);
     }
   }
+
+  static async getActivity(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const activity = await DashboardService.getActivity(req.user!.id);
+      ApiResponse.success(res, 'Monthly activity retrieved successfully', activity, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

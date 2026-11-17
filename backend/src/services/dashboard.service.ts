@@ -2,6 +2,16 @@ import mongoose from 'mongoose';
 import { Task } from '../models/task.model';
 import { TaskDto } from './task.service';
 
+export interface MonthlyActivityItem {
+  month: string;
+  monthIndex: number;
+  year: number;
+  approved: number;
+  reviewed: number;
+  todo: number;
+  total: number;
+}
+
 export interface DashboardStats {
   totalTasks: number;
   completedTasks: number;
@@ -158,6 +168,7 @@ export class DashboardService {
       description: task.description || '',
       status: task.status,
       priority: task.priority,
+      category: task.category || 'General',
       dueDate: task.dueDate,
       userId: task.userId.toString(),
       isOverdue: new Date(task.dueDate) < now && task.status !== 'COMPLETED',
@@ -182,11 +193,73 @@ export class DashboardService {
       description: task.description || '',
       status: task.status,
       priority: task.priority,
+      category: task.category || 'General',
       dueDate: task.dueDate,
       userId: task.userId.toString(),
       isOverdue: false,
       createdAt: task.createdAt,
       updatedAt: task.updatedAt,
     }));
+  }
+
+  static async getActivity(userId: string): Promise<MonthlyActivityItem[]> {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const currentYear = new Date().getFullYear();
+
+    const monthNames = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    // Initialize 12 months with 0s
+    const activityMap: Record<number, MonthlyActivityItem> = {};
+    for (let i = 0; i < 12; i++) {
+      activityMap[i + 1] = {
+        month: monthNames[i],
+        monthIndex: i + 1,
+        year: currentYear,
+        approved: 0,
+        reviewed: 0,
+        todo: 0,
+        total: 0,
+      };
+    }
+
+    const aggregation = await Task.aggregate([
+      {
+        $match: {
+          userId: userObjectId,
+          createdAt: {
+            $gte: new Date(currentYear, 0, 1),
+            $lte: new Date(currentYear, 11, 31, 23, 59, 59),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$createdAt' },
+            status: '$status',
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    aggregation.forEach((item: { _id: { month: number; status: string }; count: number }) => {
+      const m = item._id.month;
+      if (activityMap[m]) {
+        if (item._id.status === 'COMPLETED') {
+          activityMap[m].approved += item.count;
+        } else if (item._id.status === 'IN_PROGRESS') {
+          activityMap[m].reviewed += item.count;
+        } else if (item._id.status === 'TODO') {
+          activityMap[m].todo += item.count;
+        }
+        activityMap[m].total += item.count;
+      }
+    });
+
+    return Object.values(activityMap);
   }
 }

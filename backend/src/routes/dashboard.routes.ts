@@ -8,6 +8,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get('/stats', DashboardController.getStats);
+router.get('/activity', DashboardController.getActivity);
 router.get('/recent-tasks', DashboardController.getRecentTasks);
 router.get('/upcoming-tasks', DashboardController.getUpcomingTasks);
 

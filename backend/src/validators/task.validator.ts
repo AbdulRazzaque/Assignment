@@ -16,6 +16,7 @@ export const createTaskSchema = z.object({
     .optional(),
   status: taskStatusEnum.default('TODO'),
   priority: taskPriorityEnum.default('MEDIUM'),
+  category: z.string().trim().max(50).default('General'),
   dueDate: z
     .string({ required_error: 'Due date is required' })
     .refine((val) => !isNaN(Date.parse(val)), {
@@ -39,6 +40,7 @@ export const updateTaskSchema = z
       .optional(),
     status: taskStatusEnum.optional(),
     priority: taskPriorityEnum.optional(),
+    category: z.string().trim().max(50).optional(),
     dueDate: z
       .string()
       .refine((val) => !isNaN(Date.parse(val)), {
@@ -70,7 +72,10 @@ export const taskQuerySchema = z.object({
     .transform((val) => (val ? Math.min(100, Math.max(1, parseInt(val, 10))) : 10)),
   status: taskStatusEnum.optional(),
   priority: taskPriorityEnum.optional(),
+  category: z.string().trim().optional(),
   search: z.string().trim().optional(),
+  dueDateFrom: z.string().optional(),
+  dueDateTo: z.string().optional(),
   sortBy: z.enum(['dueDate', 'createdAt', 'title', 'priority']).default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
 });

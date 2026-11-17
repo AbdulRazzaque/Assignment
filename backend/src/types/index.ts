@@ -18,6 +18,7 @@ export interface ITask {
   description?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  category?: string;
   dueDate: Date;
   userId: string;
   createdAt: Date;

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { dashboardService } from '../../../services/dashboard.service';
-import { DashboardStats, Task } from '../../../types';
+import { DashboardStats, MonthlyActivityItem, Task } from '../../../types';
 import { StatCards } from '../../../components/dashboard/stat-cards';
 import { ActivityChart } from '../../../components/dashboard/activity-chart';
 import { StatusDistributionChart } from '../../../components/dashboard/status-distribution-chart';
@@ -16,6 +16,7 @@ export default function DashboardPage() {
   const { tasks, fetchTasks } = useTaskStore();
 
   const [stats, setStats] = React.useState<DashboardStats | null>(null);
+  const [activity, setActivity] = React.useState<MonthlyActivityItem[]>([]);
   const [recentTasks, setRecentTasks] = React.useState<Task[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -24,11 +25,13 @@ export default function DashboardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const [statsData, recent] = await Promise.all([
+      const [statsData, activityData, recent] = await Promise.all([
         dashboardService.getStats(),
+        dashboardService.getActivity(),
         dashboardService.getRecentTasks(6),
       ]);
       setStats(statsData);
+      setActivity(activityData);
       setRecentTasks(recent);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to load dashboard data';
@@ -46,8 +49,8 @@ export default function DashboardPage() {
   if (isLoading && !stats) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-28 w-full rounded-2xl" />
           ))}
         </div>
@@ -68,7 +71,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 4 Metric KPI Cards matching Image 1 */}
+      {/* 5 Real Metric KPI Cards matching Image 1 & Assessment requirements */}
       {stats && <StatCards stats={stats} />}
 
       {/* Middle Analytics Visualizations matching Image 1 */}
@@ -76,11 +79,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Monthly Review Activity Bar Chart (2/3 width) */}
           <div className="lg:col-span-2">
-            <ActivityChart
-              completedCount={stats.completedTasks}
-              inProgressCount={stats.inProgressTasks}
-              pendingCount={stats.pendingTasks}
-            />
+            <ActivityChart activity={activity} />
           </div>
 
           {/* Task Status Distribution Donut Chart (1/3 width) */}
@@ -88,6 +87,7 @@ export default function DashboardPage() {
             <StatusDistributionChart
               distribution={stats.statusDistribution}
               completionRate={stats.completionRate}
+              overdueCount={stats.overdueTasks}
             />
           </div>
         </div>

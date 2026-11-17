@@ -11,11 +11,11 @@ interface TaskState {
   selectedTask: Task | null;
   isModalOpen: boolean;
   isDeleteModalOpen: boolean;
-  viewMode: 'table' | 'kanban';
+  viewMode: 'table' | 'kanban' | 'calendar';
 
   setFilters: (filters: Partial<TaskQueryParams>) => void;
   resetFilters: () => void;
-  setViewMode: (mode: 'table' | 'kanban') => void;
+  setViewMode: (mode: 'table' | 'kanban' | 'calendar') => void;
   setSelectedTask: (task: Task | null) => void;
   setIsModalOpen: (open: boolean) => void;
   setIsDeleteModalOpen: (open: boolean) => void;

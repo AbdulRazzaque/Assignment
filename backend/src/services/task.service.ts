@@ -16,6 +16,7 @@ export interface TaskDto {
   description: string;
   status: string;
   priority: string;
+  category: string;
   dueDate: Date;
   userId: string;
   isOverdue: boolean;
@@ -34,6 +35,7 @@ const mapTaskToDto = (task: ITaskDocument): TaskDto => {
     description: task.description || '',
     status: task.status,
     priority: task.priority,
+    category: task.category || 'General',
     dueDate: task.dueDate,
     userId: task.userId.toString(),
     isOverdue,
@@ -64,7 +66,10 @@ export class TaskService {
       limit = 10,
       status,
       priority,
+      category,
       search,
+      dueDateFrom,
+      dueDateTo,
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = query;
@@ -78,6 +83,17 @@ export class TaskService {
 
     if (priority) {
       filter.priority = priority;
+    }
+
+    if (category && category.trim() !== '') {
+      filter.category = category.trim();
+    }
+
+    if (dueDateFrom || dueDateTo) {
+      const dateFilter: Record<string, Date> = {};
+      if (dueDateFrom) dateFilter.$gte = new Date(dueDateFrom);
+      if (dueDateTo) dateFilter.$lte = new Date(dueDateTo);
+      filter.dueDate = dateFilter;
     }
 
     if (search && search.trim() !== '') {
