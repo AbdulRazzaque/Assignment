@@ -1,0 +1,190 @@
+import mongoose from 'mongoose';
+import { Task, ITaskDocument } from '../models/task.model';
+import {
+  CreateTaskInput,
+  UpdateTaskInput,
+  UpdateTaskStatusInput,
+  UpdateTaskPriorityInput,
+  TaskQueryInput,
+} from '../validators/task.validator';
+import { AppError } from '../utils/appError';
+import { PaginationMeta, TaskStatus } from '../types';
+
+export interface TaskDto {
+  _id: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  dueDate: Date;
+  userId: string;
+  isOverdue: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const mapTaskToDto = (task: ITaskDocument): TaskDto => {
+  const now = new Date();
+  const isOverdue =
+    new Date(task.dueDate) < now && task.status !== 'COMPLETED';
+
+  return {
+    _id: task._id.toString(),
+    title: task.title,
+    description: task.description || '',
+    status: task.status,
+    priority: task.priority,
+    dueDate: task.dueDate,
+    userId: task.userId.toString(),
+    isOverdue,
+    createdAt: task.createdAt,
+    updatedAt: task.updatedAt,
+  };
+};
+
+export class TaskService {
+  static async createTask(
+    userId: string,
+    input: CreateTaskInput
+  ): Promise<TaskDto> {
+    const task = await Task.create({
+      ...input,
+      userId,
+    });
+
+    return mapTaskToDto(task);
+  }
+
+  static async getTasks(
+    userId: string,
+    query: TaskQueryInput
+  ): Promise<{ tasks: TaskDto[]; pagination: PaginationMeta }> {
+    const {
+      page = 1,
+      limit = 10,
+      status,
+      priority,
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
+
+    // Filter criteria bound strictly to the authenticated user
+    const filter: Record<string, unknown> = { userId };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (priority) {
+      filter.priority = priority;
+    }
+
+    if (search && search.trim() !== '') {
+      const sanitized = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { title: { $regex: sanitized, $options: 'i' } },
+        { description: { $regex: sanitized, $options: 'i' } },
+      ];
+    }
+
+    const sortOptions: Record<string, 1 | -1> = {
+      [sortBy]: sortOrder === 'asc' ? 1 : -1,
+    };
+
+    const skip = (page - 1) * limit;
+
+    const [tasks, total] = await Promise.all([
+      Task.find(filter).sort(sortOptions).skip(skip).limit(limit),
+      Task.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(total / limit) || 1;
+
+    const pagination: PaginationMeta = {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+    };
+
+    return {
+      tasks: tasks.map(mapTaskToDto),
+      pagination,
+    };
+  }
+
+  static async getTaskById(userId: string, taskId: string): Promise<TaskDto> {
+    const task = await Task.findOne({ _id: taskId, userId });
+
+    if (!task) {
+      throw new AppError(404, 'Task not found or unauthorized access.');
+    }
+
+    return mapTaskToDto(task);
+  }
+
+  static async updateTask(
+    userId: string,
+    taskId: string,
+    input: UpdateTaskInput
+  ): Promise<TaskDto> {
+    const task = await Task.findOneAndUpdate(
+      { _id: taskId, userId },
+      { $set: input },
+      { new: true, runValidators: true }
+    );
+
+    if (!task) {
+      throw new AppError(404, 'Task not found or unauthorized access.');
+    }
+
+    return mapTaskToDto(task);
+  }
+
+  static async deleteTask(userId: string, taskId: string): Promise<void> {
+    const result = await Task.findOneAndDelete({ _id: taskId, userId });
+
+    if (!result) {
+      throw new AppError(404, 'Task not found or unauthorized access.');
+    }
+  }
+
+  static async updateTaskStatus(
+    userId: string,
+    taskId: string,
+    input: UpdateTaskStatusInput
+  ): Promise<TaskDto> {
+    const task = await Task.findOneAndUpdate(
+      { _id: taskId, userId },
+      { $set: { status: input.status } },
+      { new: true, runValidators: true }
+    );
+
+    if (!task) {
+      throw new AppError(404, 'Task not found or unauthorized access.');
+    }
+
+    return mapTaskToDto(task);
+  }
+
+  static async updateTaskPriority(
+    userId: string,
+    taskId: string,
+    input: UpdateTaskPriorityInput
+  ): Promise<TaskDto> {
+    const task = await Task.findOneAndUpdate(
+      { _id: taskId, userId },
+      { $set: { priority: input.priority } },
+      { new: true, runValidators: true }
+    );
+
+    if (!task) {
+      throw new AppError(404, 'Task not found or unauthorized access.');
+    }
+
+    return mapTaskToDto(task);
+  }
+}
