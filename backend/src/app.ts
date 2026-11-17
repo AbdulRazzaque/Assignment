@@ -21,6 +21,7 @@ const allowedOrigins = [
   env.FRONTEND_URL,
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'http://localhost:3001',
 ];
 
 app.use(
@@ -30,13 +31,14 @@ app.use(
       if (!origin) return callback(null, true);
 
       if (
+        env.NODE_ENV !== 'production' ||
         allowedOrigins.includes(origin) ||
-        origin.endsWith('.vercel.app') // Support preview/production Vercel deployments
+        origin.endsWith('.vercel.app')
       ) {
         return callback(null, true);
       }
 
-      return callback(new Error('Blocked by CORS policy'));
+      return callback(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
