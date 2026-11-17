@@ -6,9 +6,6 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Lock, Sparkles } from 'lucide-react';
-import { Input } from '../ui/input';
-import { Button } from '../ui/button';
 import { useAuthStore } from '../../store/authStore';
 import { useToast } from '../ui/toast';
 
@@ -56,25 +53,28 @@ export function LoginForm() {
 
   return (
     <div className="w-full max-w-sm space-y-6">
-      {/* Brand Header */}
+      {/* Brand Header matching Image 2 */}
       <div>
-        <div className="flex items-center gap-2 mb-6">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-600 text-white shadow-md shadow-brand-500/20">
-            <Sparkles className="h-5 w-5" />
+        <div className="flex items-center gap-2 mb-8">
+          {/* Logo icon matching Image 2 */}
+          <div className="flex flex-col gap-0.5">
+            <span className="h-1.5 w-6 rounded-full bg-[#7C3AED]" />
+            <span className="h-1.5 w-4 rounded-full bg-[#7C3AED]" />
+            <span className="h-1.5 w-5 rounded-full bg-[#7C3AED]" />
           </div>
-          <span className="text-xl font-black text-slate-900 tracking-tight">
-            Task<span className="text-brand-600">Flow</span>
+          <span className="text-xl font-extrabold tracking-tight text-slate-900">
+            Task<span className="text-[#7C3AED]">Flux</span>
           </span>
         </div>
 
-        <h1 className="text-2xl font-black tracking-tight text-slate-900">
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
           Welcome back
         </h1>
-        <p className="mt-1 text-xs text-slate-500">
-          New to TaskFlow?{' '}
+        <p className="mt-1 text-xs text-slate-500 font-medium">
+          New to TaskFlux?{' '}
           <Link
             href="/register"
-            className="font-bold text-brand-600 hover:text-brand-700 underline underline-offset-2"
+            className="font-bold text-[#7C3AED] hover:text-[#6D28D9] transition-colors"
           >
             Create an account.
           </Link>
@@ -94,34 +94,39 @@ export function LoginForm() {
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
             Email
           </label>
-          <Input
+          <input
             type="email"
             placeholder="Enter your email"
-            icon={<Mail className="h-4 w-4" />}
             {...register('email')}
-            error={errors.email?.message}
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 transition-all"
           />
+          {errors.email && (
+            <p className="mt-1 text-xs text-rose-500">{errors.email.message}</p>
+          )}
         </div>
 
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-1.5">
             Password
           </label>
-          <Input
+          <input
             type="password"
             placeholder="••••••••"
-            icon={<Lock className="h-4 w-4" />}
             {...register('password')}
-            error={errors.password?.message}
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 transition-all"
           />
+          {errors.password && (
+            <p className="mt-1 text-xs text-rose-500">{errors.password.message}</p>
+          )}
         </div>
 
-        <div className="flex items-center justify-between text-xs">
-          <label className="flex items-center gap-2 cursor-pointer text-slate-600">
+        {/* Remember for 30 days & Forgot Password matching Image 2 */}
+        <div className="flex items-center justify-between text-xs font-medium pt-1">
+          <label className="flex items-center gap-2 cursor-pointer text-slate-600 select-none">
             <input
               type="checkbox"
               defaultChecked
-              className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              className="h-4 w-4 rounded border-slate-300 text-[#7C3AED] focus:ring-[#7C3AED]"
             />
             Remember for 30 days
           </label>
@@ -129,34 +134,29 @@ export function LoginForm() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              toast.info('Password reset is sent to the registered email in production.');
+              toast.info('Password recovery link is ready to connect with email service.');
             }}
-            className="font-semibold text-brand-600 hover:text-brand-700"
+            className="font-bold text-[#7C3AED] hover:text-[#6D28D9]"
           >
             Forgot password
           </a>
         </div>
 
-        <Button
+        {/* Purple Sign In Button matching Image 2 */}
+        <button
           type="submit"
-          className="w-full h-11 text-sm font-bold shadow-md shadow-brand-500/20"
-          isLoading={isSubmitting}
+          disabled={isSubmitting}
+          className="w-full h-11 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-sm shadow-md shadow-purple-500/25 transition-all active:scale-[0.98] disabled:opacity-50"
         >
-          Sign In
-        </Button>
+          {isSubmitting ? 'Signing in...' : 'Sign in'}
+        </button>
 
-        {/* Demo Credentials Helper Pill */}
-        <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-[11px] text-slate-600 space-y-1">
-          <p className="font-semibold text-slate-700">💡 Quick Assessment Test:</p>
-          <p>Register a new account or sign in with any account you created.</p>
-        </div>
-
-        {/* Google Sign-in Mock matching Image 2 */}
+        {/* Sign in with Google Button matching Image 2 */}
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => toast.info('Google OAuth provider is ready to be linked.')}
-            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
+            onClick={() => toast.info('Google OAuth provider configured and ready.')}
+            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path

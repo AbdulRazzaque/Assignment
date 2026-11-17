@@ -15,7 +15,10 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Filters & Actions matching Image 4 */}
       <TaskFilters />
+
+      {/* Table / Kanban View matching Image 4 */}
       {viewMode === 'table' ? <TaskTable /> : <TaskKanban />}
     </div>
   );

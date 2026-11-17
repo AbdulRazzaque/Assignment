@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Sidebar } from '../../components/layout/sidebar';
 import { TopNavbar } from '../../components/layout/top-navbar';
 import { useAuthStore } from '../../store/authStore';
 import { TaskModal } from '../../components/tasks/task-modal';
@@ -39,7 +38,7 @@ export default function DashboardLayout({
 
   if (checking) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#F4F5F9]">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
           <p className="text-xs font-semibold text-slate-500">
@@ -51,17 +50,14 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50/50 text-slate-900">
-      {/* Left Sidebar */}
-      <Sidebar />
+    <div className="min-h-screen bg-[#F4F5F9] text-slate-900 antialiased flex flex-col">
+      {/* Top Navigation Bar matching Image 1 & 4 */}
+      <TopNavbar />
 
       {/* Main Content Area */}
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        <TopNavbar />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
-          <div className="mx-auto max-w-7xl">{children}</div>
-        </main>
-      </div>
+      <main className="flex-1 w-full p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl">{children}</div>
+      </main>
 
       {/* Global Modals */}
       <TaskModal />
