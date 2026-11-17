@@ -24,6 +24,8 @@ export class AuthService {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
+      role: user.role || 'Administrator',
+      avatar: user.avatar || '',
     };
 
     const token = generateToken(userPayload);
@@ -52,6 +54,8 @@ export class AuthService {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
+      role: user.role || 'Administrator',
+      avatar: user.avatar || '',
     };
 
     const token = generateToken(userPayload);
@@ -60,7 +64,7 @@ export class AuthService {
   }
 
   static async getProfile(userId: string): Promise<AuthUserPayload> {
-    const user = await User.findById(userId).select('_id email name createdAt');
+    const user = await User.findById(userId).select('_id email name role avatar createdAt');
     if (!user) {
       throw new AppError(404, 'User profile not found.');
     }
@@ -69,6 +73,32 @@ export class AuthService {
       id: user._id.toString(),
       email: user.email,
       name: user.name,
+      role: user.role || 'Administrator',
+      avatar: user.avatar || '',
+    };
+  }
+
+  static async updateProfile(
+    userId: string,
+    input: { name?: string; role?: string; avatar?: string }
+  ): Promise<AuthUserPayload> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new AppError(404, 'User profile not found.');
+    }
+
+    if (input.name) user.name = input.name;
+    if (input.role) user.role = input.role;
+    if (input.avatar !== undefined) user.avatar = input.avatar;
+
+    await user.save();
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name,
+      role: user.role || 'Administrator',
+      avatar: user.avatar || '',
     };
   }
 }

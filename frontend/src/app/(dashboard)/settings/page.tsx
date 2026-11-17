@@ -2,110 +2,253 @@
 
 import * as React from 'react';
 import { useAuthStore } from '../../../store/authStore';
-import { Button } from '../../../components/ui/button';
 import { useToast } from '../../../components/ui/toast';
-import { User, Shield, Key, LogOut, CheckCircle2 } from 'lucide-react';
+import { Camera, Check, Shield, Bell, Moon, User, Lock, LogOut } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { user, logout } = useAuthStore();
+  const { user, updateProfile, logout } = useAuthStore();
   const toast = useToast();
 
+  const [activeTab, setActiveTab] = React.useState<
+    'profile' | 'account' | 'preferences' | 'notifications' | 'appearance'
+  >('profile');
+
+  const [name, setName] = React.useState(user?.name || 'Abdul Razzaque');
+  const [role, setRole] = React.useState(user?.role || 'Administrator');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      setName(user.name);
+      if (user.role) setRole(user.role);
+    }
+  }, [user]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await updateProfile({ name, role });
+      toast.success('Profile updated successfully!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update profile';
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    if (user) {
+      setName(user.name);
+      setRole(user.role || 'Administrator');
+    }
+  };
+
   return (
-    <div className="max-w-4xl space-y-8 pb-16">
+    <div className="max-w-4xl space-y-6 pb-16">
+      {/* Settings Header matching Screen 9 */}
       <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-          Settings & Profile
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Settings
         </h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Manage your personal profile, security configuration, and active workspace preferences.
+        <p className="text-xs text-slate-400 mt-0.5 font-medium">
+          Manage your account, preferences and workspace settings.
         </p>
       </div>
 
-      {/* User Information Card */}
-      <div className="rounded-2xl bg-white p-6 shadow-card border border-slate-100 space-y-6">
-        <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-brand-600 to-brand-500 text-white flex items-center justify-center font-bold text-xl uppercase shadow-md">
-            {user?.name ? user.name.slice(0, 2) : 'TF'}
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">{user?.name}</h3>
-            <p className="text-xs text-slate-500">{user?.email}</p>
-            <span className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-brand-50 text-brand-700">
-              <CheckCircle2 className="h-3 w-3" /> Authenticated Member
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-              User ID (MongoDB ObjectId)
-            </span>
-            <span className="font-mono text-xs text-slate-800 break-all">
-              {user?.id}
-            </span>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-100">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-              Primary Role
-            </span>
-            <span className="text-xs font-bold text-slate-800">
-              MERN Stack Technical Lead
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Security & Authentication */}
-      <div className="rounded-2xl bg-white p-6 shadow-card border border-slate-100 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
-            <Shield className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-slate-900">
-              Authentication & Security
-            </h3>
-            <p className="text-xs text-slate-400">
-              Session secured with HTTP-Only JWT cookies and Bcrypt 12-round hashing.
-            </p>
-          </div>
-        </div>
-
-        <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
-          <div>
-            <p className="text-xs font-bold text-slate-800">Active Session Status</p>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Your token is stored safely in a protected, HTTP-only cookie.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              toast.info('Session is healthy and actively refreshed by Express middleware.')
-            }
-          >
-            Verify Session
-          </Button>
-        </div>
-      </div>
-
-      {/* Danger Zone / Log Out */}
-      <div className="rounded-2xl bg-white p-6 shadow-card border border-rose-100 space-y-4">
-        <h3 className="text-base font-bold text-slate-900">Account Session</h3>
-        <p className="text-xs text-slate-500">
-          Terminate your current authenticated session across this device.
-        </p>
-        <Button
-          variant="destructive"
-          onClick={() => logout()}
-          className="gap-2"
+      {/* Tabs Navigation matching Screen 9 */}
+      <div className="flex items-center gap-8 border-b border-slate-200 px-1 text-xs font-bold text-slate-500 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('profile')}
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
+            activeTab === 'profile' ? 'text-[#7C3AED]' : 'hover:text-slate-800'
+          }`}
         >
-          <LogOut className="h-4 w-4" />
-          Log Out of TaskFlow
-        </Button>
+          Profile
+          {activeTab === 'profile' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED]" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('account')}
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
+            activeTab === 'account' ? 'text-[#7C3AED]' : 'hover:text-slate-800'
+          }`}
+        >
+          Account
+          {activeTab === 'account' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED]" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('preferences')}
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
+            activeTab === 'preferences' ? 'text-[#7C3AED]' : 'hover:text-slate-800'
+          }`}
+        >
+          Preferences
+          {activeTab === 'preferences' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED]" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('notifications')}
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
+            activeTab === 'notifications' ? 'text-[#7C3AED]' : 'hover:text-slate-800'
+          }`}
+        >
+          Notifications
+          {activeTab === 'notifications' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED]" />
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('appearance')}
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
+            activeTab === 'appearance' ? 'text-[#7C3AED]' : 'hover:text-slate-800'
+          }`}
+        >
+          Appearance
+          {activeTab === 'appearance' && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#7C3AED]" />
+          )}
+        </button>
       </div>
+
+      {/* Tab: Profile matching Screen 9 */}
+      {activeTab === 'profile' && (
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xs border border-slate-100 space-y-8">
+          {/* Avatar with Camera upload trigger matching Screen 9 */}
+          <div className="flex items-center gap-6">
+            <div className="relative group">
+              <div className="h-20 w-20 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-2xl uppercase ring-4 ring-purple-100 shadow-md overflow-hidden">
+                {name ? name.slice(0, 2).toUpperCase() : 'AR'}
+              </div>
+              <button
+                type="button"
+                onClick={() => toast.info('Profile photo upload dialog ready.')}
+                className="absolute bottom-0 right-0 p-1.5 rounded-full bg-white text-slate-700 shadow-md border border-slate-200 hover:bg-slate-50 transition-colors"
+                title="Change Avatar"
+              >
+                <Camera className="h-4 w-4" />
+              </button>
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">{name}</h3>
+              <p className="text-xs text-slate-400 font-medium">{user?.email}</p>
+              <span className="mt-1.5 inline-block text-[10px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200/60">
+                {role}
+              </span>
+            </div>
+          </div>
+
+          {/* Form matching Screen 9 */}
+          <form onSubmit={handleSaveProfile} className="space-y-5 max-w-xl">
+            {/* Full Name */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Abdul Razzaque"
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-900 focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 transition-all"
+              />
+            </div>
+
+            {/* Email Address */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Email Address
+              </label>
+              <input
+                type="email"
+                disabled
+                value={user?.email || 'abdul@example.com'}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-500 cursor-not-allowed"
+              />
+            </div>
+
+            {/* Role Dropdown matching Screen 9 */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Role
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-800 focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 cursor-pointer"
+              >
+                <option value="Administrator">Administrator</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Product Designer">Product Designer</option>
+                <option value="Software Engineer">Software Engineer</option>
+              </select>
+            </div>
+
+            {/* Action Buttons matching Screen 9 */}
+            <div className="flex items-center gap-3 pt-3">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="h-10 px-6 rounded-xl bg-[#7C3AED] hover:bg-[#6D28D9] text-white font-bold text-xs shadow-md shadow-purple-500/25 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Updating...' : 'Update Profile'}
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="h-10 px-6 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-bold text-xs transition-colors shadow-2xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Other Tabs */}
+      {activeTab === 'account' && (
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xs border border-slate-100 space-y-6">
+          <h3 className="text-base font-extrabold text-slate-900">Account Security</h3>
+          <p className="text-xs text-slate-500">
+            Your workspace session is secured via protected HTTP-only JWT cookies and bcryptjs hashing.
+          </p>
+          <div className="pt-2">
+            <button
+              onClick={() => logout()}
+              className="flex items-center gap-2 h-10 px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-sm"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out from All Devices
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'preferences' && (
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xs border border-slate-100 space-y-4">
+          <h3 className="text-base font-extrabold text-slate-900">Workspace Preferences</h3>
+          <p className="text-xs text-slate-500">Configure notifications, default project views, and timezone.</p>
+        </div>
+      )}
+
+      {activeTab === 'notifications' && (
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xs border border-slate-100 space-y-4">
+          <h3 className="text-base font-extrabold text-slate-900">Notification Alerts</h3>
+          <p className="text-xs text-slate-500">Receive alerts for upcoming deadlines, overdue tasks, and project mentions.</p>
+        </div>
+      )}
+
+      {activeTab === 'appearance' && (
+        <div className="rounded-2xl bg-white p-6 sm:p-8 shadow-xs border border-slate-100 space-y-4">
+          <h3 className="text-base font-extrabold text-slate-900">Theme Appearance</h3>
+          <p className="text-xs text-slate-500">TaskFlow Pro Enterprise Dark Navy & Violet palette.</p>
+        </div>
+      )}
     </div>
   );
 }

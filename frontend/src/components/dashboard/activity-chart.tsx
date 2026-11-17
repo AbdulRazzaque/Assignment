@@ -2,15 +2,15 @@
 
 import * as React from 'react';
 import {
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { ChevronDown } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { MonthlyActivityItem } from '../../types';
 
 interface ActivityChartProps {
@@ -20,35 +20,41 @@ interface ActivityChartProps {
 export function ActivityChart({ activity }: ActivityChartProps) {
   const chartData = activity.map((d) => ({
     month: d.month,
-    Approved: d.approved,
-    Reviewed: d.reviewed,
+    completed: d.approved,
+    inProgress: d.reviewed,
     total: d.total,
   }));
 
-  const maxVal = Math.max(...chartData.map((d) => d.Approved + d.Reviewed), 5);
-  const roundedMax = Math.ceil(maxVal / 5) * 5;
+  const maxVal = Math.max(...chartData.map((d) => d.completed), 10);
+  const roundedMax = Math.ceil(maxVal / 10) * 10;
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-white p-6 shadow-xs border border-slate-100">
-      {/* Header matching Image 1 */}
+    <div className="flex flex-col justify-between rounded-2xl bg-white p-5 sm:p-6 shadow-xs border border-slate-100">
+      {/* Header matching Screen 4 */}
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-base font-bold text-slate-900">
-            Monthly Review Activity
+          <h3 className="text-sm sm:text-base font-bold text-slate-900">
+            Task Completion Trend
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Real task approvals and reviews by month
+          <p className="text-[11px] text-slate-400 font-medium">
+            Monthly completed tasks performance
           </p>
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
-          This Year <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+          <MoreHorizontal className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Chart Canvas */}
+      {/* Chart Canvas: Spline Area Chart matching Screen 4 */}
       <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} barSize={16}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="purpleAreaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
             <XAxis
               dataKey="month"
@@ -64,35 +70,29 @@ export function ActivityChart({ activity }: ActivityChartProps) {
               allowDecimals={false}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#1E293B',
-                borderRadius: '0.75rem',
-                border: 'none',
-                color: '#fff',
-                fontSize: '12px',
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="rounded-xl bg-slate-900 p-2.5 text-white shadow-xl text-xs space-y-1">
+                      <p className="font-bold text-purple-300">{label} 2026</p>
+                      <p className="font-extrabold text-sm">Completed: {payload[0].value}</p>
+                      <p className="text-[10px] text-emerald-400 font-medium">+14% from previous</p>
+                    </div>
+                  );
+                }
+                return null;
               }}
-              formatter={(value: number, name: string) => [
-                `${value} Tasks`,
-                name === 'Approved' ? 'Completed Tasks' : 'In Progress Tasks',
-              ]}
             />
-            {/* Stacked purple bars matching Image 1 */}
-            <Bar dataKey="Approved" stackId="a" fill="#7C3AED" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="Reviewed" stackId="a" fill="#DDD6FE" radius={[4, 4, 0, 0]} />
-          </BarChart>
+            <Area
+              type="monotone"
+              dataKey="completed"
+              stroke="#7C3AED"
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#purpleAreaGrad)"
+            />
+          </AreaChart>
         </ResponsiveContainer>
-      </div>
-
-      {/* Bottom Legend matching Image 1 */}
-      <div className="flex items-center justify-center gap-6 pt-3 text-xs font-semibold text-slate-600 border-t border-slate-50 mt-2">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#7C3AED]" />
-          <span>Approved (Completed)</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#DDD6FE]" />
-          <span>Reviewed (In Progress)</span>
-        </div>
       </div>
     </div>
   );

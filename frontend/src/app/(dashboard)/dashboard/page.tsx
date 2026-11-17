@@ -10,6 +10,7 @@ import { RecentTasksCard } from '../../../components/dashboard/recent-tasks-card
 import { Skeleton } from '../../../components/ui/skeleton';
 import { useTaskStore } from '../../../store/taskStore';
 import { useAuthStore } from '../../../store/authStore';
+import { ChevronDown } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -49,14 +50,14 @@ export default function DashboardPage() {
   if (isLoading && !stats) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-24 w-full rounded-2xl" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Skeleton className="h-80 lg:col-span-2 rounded-2xl" />
-          <Skeleton className="h-80 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Skeleton className="h-80 lg:col-span-7 rounded-2xl" />
+          <Skeleton className="h-80 lg:col-span-5 rounded-2xl" />
         </div>
         <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
@@ -65,25 +66,42 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Page Header matching Screen 4 */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-xs text-slate-400 mt-0.5 font-medium">
+            Here&apos;s what&apos;s happening with your work today.
+          </p>
+        </div>
+
+        <button className="flex items-center gap-2 h-9 px-3.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs self-start sm:self-auto">
+          <span>Last 30 Days</span>
+          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        </button>
+      </div>
+
       {error && (
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
           {error}
         </div>
       )}
 
-      {/* 5 Real Metric KPI Cards matching Image 1 & Assessment requirements */}
+      {/* 5 Real Metric KPI Cards matching Screen 4 */}
       {stats && <StatCards stats={stats} />}
 
-      {/* Middle Analytics Visualizations matching Image 1 */}
+      {/* Middle Analytics Visualizations matching Screen 4 */}
       {stats && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Monthly Review Activity Bar Chart (2/3 width) */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Task Completion Trend Area Chart (7 cols) */}
+          <div className="lg:col-span-7">
             <ActivityChart activity={activity} />
           </div>
 
-          {/* Task Status Distribution Donut Chart (1/3 width) */}
-          <div>
+          {/* Task Status Distribution Donut Chart (5 cols) */}
+          <div className="lg:col-span-5">
             <StatusDistributionChart
               distribution={stats.statusDistribution}
               completionRate={stats.completionRate}
@@ -93,7 +111,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Bottom Task Review List Table matching Image 1 */}
+      {/* Bottom Task Review List Table */}
       <RecentTasksCard tasks={recentTasks.length > 0 ? recentTasks : tasks} />
     </div>
   );

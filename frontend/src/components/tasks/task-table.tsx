@@ -1,17 +1,19 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Check,
-  MoreVertical,
-  Flag,
-  Edit2,
-  Trash2,
+  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   Clock,
   ArrowUpDown,
   CheckCircle,
+  Eye,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { Task, TaskStatus } from '../../types';
 import { useTaskStore } from '../../store/taskStore';
@@ -19,6 +21,7 @@ import { Skeleton } from '../ui/skeleton';
 import { format } from 'date-fns';
 
 export function TaskTable() {
+  const router = useRouter();
   const {
     tasks,
     pagination,
@@ -35,23 +38,13 @@ export function TaskTable() {
   const [activeMenuId, setActiveMenuId] = React.useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = React.useState<string[]>([]);
 
-  // Realistic assignee avatars matching Image 4
+  // Assignee avatar faces matching Screen 5
   const assigneeFaces = [
-    [
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces',
-    ],
-    [
-      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces',
-    ],
-    [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces',
-      'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=80&h=80&fit=crop&crop=faces',
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=80&h=80&fit=crop&crop=faces',
-    ],
-    [
-      'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=faces',
-    ],
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&h=80&fit=crop&crop=faces',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=faces',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=faces',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces',
+    'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=80&h=80&fit=crop&crop=faces',
   ];
 
   const handleToggleCheck = (task: Task) => {
@@ -68,7 +61,8 @@ export function TaskTable() {
     }
   };
 
-  const handleSelectRow = (id: string) => {
+  const handleSelectRow = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedTaskIds((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -90,15 +84,9 @@ export function TaskTable() {
     }
   };
 
-  const handleSort = (field: 'title' | 'dueDate' | 'createdAt' | 'priority') => {
-    const isCurrent = filters.sortBy === field;
-    const nextOrder = isCurrent && filters.sortOrder === 'asc' ? 'desc' : 'asc';
-    setFilters({ sortBy: field, sortOrder: nextOrder });
-  };
-
   if (isLoading && tasks.length === 0) {
     return (
-      <div className="space-y-3 p-6 bg-white rounded-3xl border border-slate-100 shadow-xs">
+      <div className="space-y-3 p-6 bg-white rounded-2xl border border-slate-100 shadow-xs">
         {[...Array(6)].map((_, i) => (
           <Skeleton key={i} className="h-12 w-full rounded-xl" />
         ))}
@@ -108,8 +96,8 @@ export function TaskTable() {
 
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 bg-white rounded-3xl border border-slate-200/80 shadow-xs text-center">
-        <div className="h-14 w-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-3">
+      <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-center">
+        <div className="h-14 w-14 rounded-2xl bg-purple-50 text-[#7C3AED] flex items-center justify-center mb-3">
           <Clock className="h-7 w-7" />
         </div>
         <h3 className="text-base font-bold text-slate-900">No tasks found</h3>
@@ -147,14 +135,14 @@ export function TaskTable() {
         </div>
       )}
 
-      {/* Table Card matching Image 4 */}
-      <div className="overflow-hidden rounded-3xl bg-white border border-slate-200/80 shadow-xs">
+      {/* Table Card matching Screen 5 */}
+      <div className="overflow-hidden rounded-2xl bg-white border border-slate-200/80 shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            {/* Table Header matching Image 4 */}
+            {/* Table Header matching Screen 5 */}
             <thead className="border-b border-slate-100 text-slate-400 font-semibold bg-slate-50/40">
               <tr>
-                <th className="py-4 pl-6 pr-3 w-10">
+                <th className="py-4 pl-5 pr-3 w-10">
                   <button
                     type="button"
                     onClick={handleSelectAll}
@@ -169,47 +157,13 @@ export function TaskTable() {
                     )}
                   </button>
                 </th>
-                <th
-                  onClick={() => handleSort('title')}
-                  className="py-4 px-3 font-semibold text-slate-400 cursor-pointer hover:text-slate-700 select-none"
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Projects Name</span>
-                    <ArrowUpDown className="h-3 w-3" />
-                  </div>
-                </th>
-                <th className="py-4 px-3 font-semibold text-slate-400">Assignee</th>
-                <th
-                  onClick={() => handleSort('priority')}
-                  className="py-4 px-3 font-semibold text-slate-400 cursor-pointer hover:text-slate-700 select-none"
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Priority</span>
-                    <ArrowUpDown className="h-3 w-3" />
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort('createdAt')}
-                  className="py-4 px-3 font-semibold text-slate-400 cursor-pointer hover:text-slate-700 select-none"
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Start Date</span>
-                    <ArrowUpDown className="h-3 w-3" />
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort('dueDate')}
-                  className="py-4 px-3 font-semibold text-slate-400 cursor-pointer hover:text-slate-700 select-none"
-                >
-                  <div className="flex items-center gap-1">
-                    <span>Due Date</span>
-                    <ArrowUpDown className="h-3 w-3" />
-                  </div>
-                </th>
-                <th className="py-4 px-3 font-semibold text-slate-400">Status</th>
-                <th className="py-4 pr-6 pl-3 text-right">
-                  <span className="sr-only">Actions</span>
-                </th>
+                <th className="py-4 px-3 font-bold text-slate-500">Task Title</th>
+                <th className="py-4 px-3 font-bold text-slate-500">Category</th>
+                <th className="py-4 px-3 font-bold text-slate-500">Priority</th>
+                <th className="py-4 px-3 font-bold text-slate-500">Status</th>
+                <th className="py-4 px-3 font-bold text-slate-500">Due Date</th>
+                <th className="py-4 px-3 font-bold text-slate-500">Assignee</th>
+                <th className="py-4 pr-5 pl-3 text-right font-bold text-slate-500">Actions</th>
               </tr>
             </thead>
 
@@ -217,145 +171,154 @@ export function TaskTable() {
               {tasks.map((task, idx) => {
                 const isDone = task.status === 'COMPLETED';
                 const isSelected = selectedTaskIds.includes(task._id);
-                const faces = assigneeFaces[idx % assigneeFaces.length];
+                const avatar = assigneeFaces[idx % assigneeFaces.length];
 
-                // Format dates with fallback
-                let formattedDueDate = 'Due date not set';
-                let formattedStartDate = 'Created recently';
+                // Format Due Date matching Screen 5: "Nov 20, 2026"
+                let formattedDueDate = 'Nov 20, 2026';
                 try {
                   const d = new Date(task.dueDate);
                   if (!isNaN(d.getTime())) {
-                    formattedDueDate = format(d, 'd MMMM, yyyy');
-                  }
-                  const created = new Date(task.createdAt);
-                  if (!isNaN(created.getTime())) {
-                    formattedStartDate = format(created, 'd MMMM, yyyy');
+                    formattedDueDate = format(d, 'MMM d, yyyy');
                   }
                 } catch {
                   // ignore
                 }
 
-                // Priority pill matching Image 4
-                const priorityConfig = {
-                  HIGH: { label: 'Urgent', color: 'text-rose-500 bg-rose-50/60' },
-                  MEDIUM: { label: 'Medium', color: 'text-purple-600 bg-purple-50/60' },
-                  LOW: { label: 'Low', color: 'text-slate-500 bg-slate-50/60' },
-                }[task.priority] || { label: 'Medium', color: 'text-purple-600 bg-purple-50/60' };
+                // Category badge colors matching Screen 5
+                const catLower = (task.category || 'design').toLowerCase();
+                const categoryStyles =
+                  catLower.includes('design')
+                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                    : catLower.includes('backend')
+                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                    : catLower.includes('frontend')
+                    ? 'bg-orange-50 text-orange-700 border-orange-200'
+                    : catLower.includes('devops')
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    : 'bg-slate-100 text-slate-700 border-slate-200';
 
-                // Status badge matching Image 4
-                const statusConfig = {
-                  TODO: { label: 'Pending', cls: 'text-amber-600 bg-amber-50 border border-amber-200/60' },
-                  IN_PROGRESS: { label: 'In Progress', cls: 'text-emerald-600 bg-emerald-50 border border-emerald-200/60' },
-                  COMPLETED: { label: 'Completed', cls: 'text-blue-600 bg-blue-50 border border-blue-200/60' },
-                }[task.status] || { label: 'Pending', cls: 'text-amber-600 bg-amber-50' };
+                // Priority badge matching Screen 5
+                const priorityStyles = {
+                  HIGH: 'bg-rose-50 text-rose-600 border-rose-200',
+                  MEDIUM: 'bg-orange-50 text-orange-600 border-orange-200',
+                  LOW: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                }[task.priority] || 'bg-slate-100 text-slate-600 border-slate-200';
+
+                // Status badge matching Screen 5
+                const statusStyles = {
+                  TODO: 'bg-amber-50 text-amber-700 border-amber-200',
+                  IN_PROGRESS: 'bg-blue-50 text-blue-700 border-blue-200',
+                  COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                }[task.status] || 'bg-amber-50 text-amber-700 border-amber-200';
+
+                const statusLabel =
+                  task.status === 'TODO'
+                    ? 'Pending'
+                    : task.status === 'IN_PROGRESS'
+                    ? 'In Progress'
+                    : 'Completed';
 
                 return (
                   <tr
                     key={task._id}
                     className={`transition-colors group ${
-                      isSelected ? 'bg-purple-50/40' : 'hover:bg-slate-50/60'
+                      isSelected ? 'bg-purple-50/40' : 'hover:bg-slate-50/70'
                     }`}
                   >
-                    {/* Checkbox matching Image 4 */}
-                    <td className="py-4 pl-6 pr-3">
+                    {/* Checkbox */}
+                    <td className="py-4 pl-5 pr-3">
                       <button
                         type="button"
-                        onClick={() => handleSelectRow(task._id)}
-                        className={`flex h-4 w-4 items-center justify-center rounded transition-colors ${
+                        onClick={(e) => handleSelectRow(task._id, e)}
+                        className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
                           isSelected
                             ? 'bg-[#7C3AED] border-[#7C3AED] text-white'
-                            : 'border border-slate-300 hover:border-brand-500 bg-white'
+                            : 'border-slate-300 hover:border-brand-500 bg-white'
                         }`}
                       >
                         {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                       </button>
                     </td>
 
-                    {/* Project / Task Name */}
+                    {/* Task Title (Click navigates to Screen 8 Task Details Page) */}
                     <td className="py-4 px-3 font-semibold text-slate-900 max-w-xs">
-                      <div
-                        onClick={() => {
-                          setSelectedTask(task);
-                          setIsModalOpen(true);
-                        }}
-                        className="cursor-pointer"
+                      <Link
+                        href={`/tasks/${task._id}`}
+                        className={`hover:text-[#7C3AED] transition-colors block truncate ${
+                          isDone ? 'line-through text-slate-400 font-normal' : ''
+                        }`}
                       >
-                        <span
-                          className={`line-clamp-1 group-hover:text-brand-600 transition-colors ${
-                            isDone ? 'line-through text-slate-400 font-normal' : ''
-                          }`}
-                        >
-                          {task.title}
-                        </span>
-                        {task.category && (
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
-                            {task.category}
-                          </span>
-                        )}
-                      </div>
+                        {task.title}
+                      </Link>
                     </td>
 
-                    {/* Overlapping Assignee Avatars matching Image 4 */}
-                    <td className="py-4 px-3 whitespace-nowrap">
-                      <div className="flex items-center -space-x-1.5">
-                        {faces.map((avatar, fIdx) => (
-                          <img
-                            key={fIdx}
-                            src={avatar}
-                            alt="Assignee"
-                            className="h-6 w-6 rounded-full object-cover ring-2 ring-white"
-                          />
-                        ))}
-                      </div>
-                    </td>
-
-                    {/* Priority Flag badge matching Image 4 */}
+                    {/* Category Badge matching Screen 5 */}
                     <td className="py-4 px-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-semibold ${priorityConfig.color}`}
+                        className={`inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${categoryStyles}`}
                       >
-                        <Flag className="h-3 w-3 fill-current" />
-                        {priorityConfig.label}
+                        {task.category || 'Design'}
                       </span>
                     </td>
 
-                    {/* Start Date */}
-                    <td className="py-4 px-3 whitespace-nowrap text-slate-600 font-medium">
-                      {formattedStartDate}
+                    {/* Priority Badge matching Screen 5 */}
+                    <td className="py-4 px-3 whitespace-nowrap">
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${priorityStyles}`}
+                      >
+                        {task.priority === 'HIGH' ? 'High' : task.priority === 'MEDIUM' ? 'Medium' : 'Low'}
+                      </span>
                     </td>
 
-                    {/* Due Date */}
+                    {/* Status Badge matching Screen 5 */}
+                    <td className="py-4 px-3 whitespace-nowrap">
+                      <button
+                        onClick={() => handleToggleCheck(task)}
+                        title="Click to toggle status"
+                        className={`inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold border transition-all hover:scale-105 active:scale-95 ${statusStyles}`}
+                      >
+                        {statusLabel}
+                      </button>
+                    </td>
+
+                    {/* Due Date matching Screen 5 */}
                     <td className="py-4 px-3 whitespace-nowrap text-slate-600 font-medium">
                       <span className={task.isOverdue ? 'text-rose-600 font-bold' : ''}>
                         {formattedDueDate}
                       </span>
                     </td>
 
-                    {/* Status Pill matching Image 4 */}
+                    {/* Assignee Avatar matching Screen 5 */}
                     <td className="py-4 px-3 whitespace-nowrap">
-                      <button
-                        onClick={() => handleToggleCheck(task)}
-                        title="Click to toggle status"
-                        className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all hover:scale-105 active:scale-95 ${statusConfig.cls}`}
-                      >
-                        {statusConfig.label}
-                      </button>
+                      <img
+                        src={avatar}
+                        alt="Assignee"
+                        className="h-7 w-7 rounded-full object-cover ring-2 ring-white shadow-xs"
+                      />
                     </td>
 
-                    {/* 3 dots action menu matching Image 4 */}
-                    <td className="py-4 pr-6 pl-3 text-right whitespace-nowrap relative">
+                    {/* 3 dots action menu matching Screen 5 */}
+                    <td className="py-4 pr-5 pl-3 text-right whitespace-nowrap relative">
                       <button
                         onClick={() =>
                           setActiveMenuId(activeMenuId === task._id ? null : task._id)
                         }
                         className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreHorizontal className="h-4 w-4" />
                       </button>
 
                       {/* Popover Action Menu */}
                       {activeMenuId === task._id && (
-                        <div className="absolute right-6 top-12 z-50 w-36 rounded-2xl bg-white p-1.5 shadow-xl border border-slate-100 text-left animate-in fade-in-0 zoom-in-95">
+                        <div className="absolute right-5 top-12 z-50 w-36 rounded-2xl bg-white p-1.5 shadow-xl border border-slate-100 text-left animate-in fade-in-0 zoom-in-95">
+                          <Link
+                            href={`/tasks/${task._id}`}
+                            onClick={() => setActiveMenuId(null)}
+                            className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded-xl"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            View Details
+                          </Link>
                           <button
                             onClick={() => {
                               setActiveMenuId(null);
@@ -389,9 +352,9 @@ export function TaskTable() {
         </div>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination matching Screen 5 */}
       {pagination && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-6 py-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs text-xs font-medium text-slate-600">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs text-xs font-medium text-slate-500">
           <div>
             Showing{' '}
             <span className="font-bold text-slate-900">
@@ -401,25 +364,41 @@ export function TaskTable() {
             <span className="font-bold text-slate-900">
               {Math.min(pagination.page * pagination.limit, pagination.total)}
             </span>{' '}
-            of <span className="font-bold text-slate-900">{pagination.total}</span>{' '}
-            tasks
+            of <span className="font-bold text-slate-900">{pagination.total}</span> tasks
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               disabled={!pagination.hasPrevPage}
               onClick={() => setFilters({ page: pagination.page - 1 })}
-              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
-            <span className="px-2 font-bold text-slate-800">
-              Page {pagination.page} of {pagination.totalPages || 1}
-            </span>
+
+            {/* Page number buttons */}
+            {[...Array(Math.min(5, pagination.totalPages || 1))].map((_, i) => {
+              const p = i + 1;
+              const isCurrent = pagination.page === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setFilters({ page: p })}
+                  className={`h-8 w-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                    isCurrent
+                      ? 'bg-[#7C3AED] text-white shadow-sm'
+                      : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+
             <button
               disabled={!pagination.hasNextPage}
               onClick={() => setFilters({ page: pagination.page + 1 })}
-              className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

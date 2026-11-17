@@ -62,4 +62,17 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async updateProfile(
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const user = await AuthService.updateProfile(req.user!.id, req.body);
+      ApiResponse.success(res, 'Profile updated successfully', { user }, 200);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

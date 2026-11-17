@@ -12,6 +12,7 @@ interface AuthState {
   checkAuth: () => Promise<boolean>;
   login: (data: { email: string; password: string }) => Promise<void>;
   register: (data: { name: string; email: string; password: string }) => Promise<void>;
+  updateProfile: (data: { name?: string; role?: string; avatar?: string }) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -58,6 +59,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: result.user, isAuthenticated: true, isInitialized: true, isLoading: false });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
+      set({ error: message, isLoading: false });
+      throw err;
+    }
+  },
+
+  updateProfile: async (data) => {
+    try {
+      set({ isLoading: true, error: null });
+      const updatedUser = await authService.updateProfile(data);
+      set({ user: updatedUser, isLoading: false });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Profile update failed';
       set({ error: message, isLoading: false });
       throw err;
     }

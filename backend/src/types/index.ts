@@ -7,6 +7,8 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
+  role?: string;
+  avatar?: string;
   password?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -29,6 +31,8 @@ export interface AuthUserPayload {
   id: string;
   email: string;
   name: string;
+  role?: string;
+  avatar?: string;
 }
 
 export interface AuthRequest extends Request {

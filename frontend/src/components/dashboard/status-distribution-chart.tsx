@@ -24,82 +24,104 @@ export function StatusDistributionChart({
 
   const total = pendingCount + approvedCount + inProgressCount + overdueCount;
 
-  // Chart data with fallback placeholder if 0 tasks
+  // Real percentages
+  const completedPct = total > 0 ? Math.round((approvedCount / total) * 100) : 0;
+  const inProgressPct = total > 0 ? Math.round((inProgressCount / total) * 100) : 0;
+  const pendingPct = total > 0 ? Math.round((pendingCount / total) * 100) : 0;
+  const overduePct = total > 0 ? Math.round((overdueCount / total) * 100) : 0;
+
   const chartData =
     total === 0
       ? [{ name: 'No Tasks', value: 1, color: '#E2E8F0' }]
       : [
-          { name: 'Approved', value: approvedCount, color: '#8B5CF6' }, // vivid purple
-          { name: 'Pending', value: pendingCount, color: '#FBBF24' },   // warm yellow
-          { name: 'In Progress', value: inProgressCount, color: '#F97316' }, // orange
+          { name: 'Completed', value: approvedCount, color: '#7C3AED' }, // purple
+          { name: 'In Progress', value: inProgressCount, color: '#3B82F6' }, // blue
+          { name: 'Pending', value: pendingCount, color: '#F59E0B' }, // amber
           { name: 'Overdue', value: overdueCount, color: '#EF4444' }, // red
         ].filter((d) => d.value > 0);
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-white p-6 shadow-xs border border-slate-100">
+    <div className="flex flex-col justify-between rounded-2xl bg-white p-5 sm:p-6 shadow-xs border border-slate-100">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-base font-bold text-slate-900">
+        <h3 className="text-sm sm:text-base font-bold text-slate-900">
           Task Status Distribution
         </h3>
       </div>
 
-      {/* Donut Chart with Center Text matching Image 1 */}
-      <div className="relative my-2 flex h-56 items-center justify-center">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              innerRadius={65}
-              outerRadius={92}
-              paddingAngle={total > 0 ? 3 : 0}
-              dataKey="value"
-            >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Pie>
-            {total > 0 && (
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#1E293B',
-                  borderRadius: '0.75rem',
-                  border: 'none',
-                  color: '#fff',
-                  fontSize: '12px',
-                }}
-              />
-            )}
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 my-auto py-2">
+        {/* Donut Chart with Center Text matching Screen 4 */}
+        <div className="relative flex h-48 w-48 shrink-0 items-center justify-center">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                innerRadius={55}
+                outerRadius={75}
+                paddingAngle={total > 0 ? 3 : 0}
+                dataKey="value"
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              {total > 0 && (
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1E293B',
+                    borderRadius: '0.75rem',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '12px',
+                  }}
+                />
+              )}
+            </PieChart>
+          </ResponsiveContainer>
 
-        {/* Center Growth Metric matching Image 1 */}
-        <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
-          <span className="text-3xl font-black text-slate-900 leading-tight">
-            {total > 0 ? `${completionRate}%` : '0%'}
-          </span>
-          <span className="text-[11px] font-semibold text-slate-400">
-            {total > 0 ? 'Completion Rate' : 'No Tasks Yet'}
-          </span>
+          {/* Center Metric matching Screen 4: e.g. "248 Tasks" */}
+          <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
+            <span className="text-2xl font-black text-slate-900 leading-tight">
+              {total}
+            </span>
+            <span className="text-[11px] font-bold text-slate-400">
+              Tasks
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* 2x2 Legend matching Image 1 */}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-4 border-t border-slate-100 text-xs font-semibold">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#FBBF24]" />
-          <span className="text-slate-600 truncate">Pending: {pendingCount}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#8B5CF6]" />
-          <span className="text-slate-600 truncate">Approved: {approvedCount}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#F97316]" />
-          <span className="text-slate-600 truncate">In Progress: {inProgressCount}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#EF4444]" />
-          <span className="text-slate-600 truncate">Overdue: {overdueCount}</span>
+        {/* Legend matching Screen 4 */}
+        <div className="flex flex-col gap-2.5 text-xs font-semibold w-full sm:w-auto">
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#7C3AED]" />
+              <span className="text-slate-600">Completed</span>
+            </div>
+            <span className="font-extrabold text-slate-900">{completedPct}%</span>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#3B82F6]" />
+              <span className="text-slate-600">In Progress</span>
+            </div>
+            <span className="font-extrabold text-slate-900">{inProgressPct}%</span>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#F59E0B]" />
+              <span className="text-slate-600">Pending</span>
+            </div>
+            <span className="font-extrabold text-slate-900">{pendingPct}%</span>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-start gap-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-[#EF4444]" />
+              <span className="text-slate-600">Overdue</span>
+            </div>
+            <span className="font-extrabold text-slate-900">{overduePct}%</span>
+          </div>
         </div>
       </div>
     </div>

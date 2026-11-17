@@ -37,4 +37,9 @@ export const authService = {
     const response = await apiClient.get<ApiResponse<{ user: User }>>('/auth/me');
     return response.data.data.user;
   },
+
+  async updateProfile(data: { name?: string; role?: string; avatar?: string }): Promise<User> {
+    const response = await apiClient.patch<ApiResponse<{ user: User }>>('/auth/profile', data);
+    return response.data.data.user;
+  },
 };

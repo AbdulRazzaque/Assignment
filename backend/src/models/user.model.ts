@@ -5,6 +5,8 @@ export interface IUserDocument extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
   email: string;
+  role?: string;
+  avatar?: string;
   password?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -28,6 +30,15 @@ const UserSchema = new Schema<IUserDocument>(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email address'],
       index: true,
+    },
+    role: {
+      type: String,
+      default: 'Administrator',
+      trim: true,
+    },
+    avatar: {
+      type: String,
+      default: '',
     },
     password: {
       type: String,
