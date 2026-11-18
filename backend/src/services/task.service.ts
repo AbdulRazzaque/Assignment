@@ -8,7 +8,13 @@ import {
   TaskQueryInput,
 } from '../validators/task.validator';
 import { AppError } from '../utils/appError';
-import { PaginationMeta, TaskStatus } from '../types';
+import { PaginationMeta } from '../types';
+
+export interface SubtaskDto {
+  _id?: string;
+  title: string;
+  completed: boolean;
+}
 
 export interface TaskDto {
   _id: string;
@@ -17,6 +23,9 @@ export interface TaskDto {
   status: string;
   priority: string;
   category: string;
+  tags: string[];
+  projectId: string | null;
+  subtasks: SubtaskDto[];
   dueDate: Date;
   userId: string;
   isOverdue: boolean;
@@ -36,6 +45,15 @@ const mapTaskToDto = (task: ITaskDocument): TaskDto => {
     status: task.status,
     priority: task.priority,
     category: task.category || 'General',
+    tags: Array.isArray(task.tags) ? task.tags : [],
+    projectId: task.projectId ? task.projectId.toString() : null,
+    subtasks: Array.isArray(task.subtasks)
+      ? task.subtasks.map((s) => ({
+          _id: s._id ? s._id.toString() : undefined,
+          title: s.title,
+          completed: Boolean(s.completed),
+        }))
+      : [],
     dueDate: task.dueDate,
     userId: task.userId.toString(),
     isOverdue,
@@ -49,11 +67,18 @@ export class TaskService {
     userId: string,
     input: CreateTaskInput
   ): Promise<TaskDto> {
-    const task = await Task.create({
+    const payload: Record<string, unknown> = {
       ...input,
       userId,
-    });
+    };
 
+    if (input.projectId && mongoose.Types.ObjectId.isValid(input.projectId)) {
+      payload.projectId = new mongoose.Types.ObjectId(input.projectId);
+    } else {
+      payload.projectId = null;
+    }
+
+    const task = await Task.create(payload);
     return mapTaskToDto(task);
   }
 
@@ -67,6 +92,8 @@ export class TaskService {
       status,
       priority,
       category,
+      tag,
+      projectId,
       search,
       dueDateFrom,
       dueDateTo,
@@ -89,6 +116,14 @@ export class TaskService {
       filter.category = category.trim();
     }
 
+    if (tag && tag.trim() !== '') {
+      filter.tags = tag.trim();
+    }
+
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      filter.projectId = new mongoose.Types.ObjectId(projectId);
+    }
+
     if (dueDateFrom || dueDateTo) {
       const dateFilter: Record<string, Date> = {};
       if (dueDateFrom) dateFilter.$gte = new Date(dueDateFrom);
@@ -101,6 +136,8 @@ export class TaskService {
       filter.$or = [
         { title: { $regex: sanitized, $options: 'i' } },
         { description: { $regex: sanitized, $options: 'i' } },
+        { category: { $regex: sanitized, $options: 'i' } },
+        { tags: { $regex: sanitized, $options: 'i' } },
       ];
     }
 
@@ -147,9 +184,19 @@ export class TaskService {
     taskId: string,
     input: UpdateTaskInput
   ): Promise<TaskDto> {
+    const updatePayload: Record<string, unknown> = { ...input };
+
+    if ('projectId' in input) {
+      if (input.projectId && mongoose.Types.ObjectId.isValid(input.projectId)) {
+        updatePayload.projectId = new mongoose.Types.ObjectId(input.projectId);
+      } else {
+        updatePayload.projectId = null;
+      }
+    }
+
     const task = await Task.findOneAndUpdate(
       { _id: taskId, userId },
-      { $set: input },
+      { $set: updatePayload },
       { new: true, runValidators: true }
     );
 

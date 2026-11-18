@@ -24,6 +24,8 @@ export function TaskTable() {
   const router = useRouter();
   const {
     tasks,
+    projects,
+    tags: workspaceTags,
     pagination,
     isLoading,
     filters,
@@ -240,7 +242,7 @@ export function TaskTable() {
                       </button>
                     </td>
 
-                    {/* Task Title (Click navigates to Screen 8 Task Details Page) */}
+                    {/* Task Title + Project & Tag pills */}
                     <td className="py-4 px-3 font-semibold text-slate-900 max-w-xs">
                       <Link
                         href={`/tasks/${task._id}`}
@@ -250,6 +252,37 @@ export function TaskTable() {
                       >
                         {task.title}
                       </Link>
+                      {((task.tags && task.tags.length > 0) || task.projectId) && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          {task.projectId && (() => {
+                            const proj = projects.find((p) => p._id === task.projectId);
+                            if (!proj) return null;
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700"
+                              >
+                                <span
+                                  className="h-1.5 w-1.5 rounded-full"
+                                  style={{ backgroundColor: proj.color }}
+                                />
+                                {proj.name}
+                              </span>
+                            );
+                          })()}
+                          {(task.tags || []).slice(0, 3).map((tagName) => {
+                            const found = workspaceTags.find((t) => t.name === tagName);
+                            return (
+                              <span
+                                key={tagName}
+                                className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold text-white"
+                                style={{ backgroundColor: found?.color || '#7C3AED' }}
+                              >
+                                #{tagName}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </td>
 
                     {/* Category Badge matching Screen 5 */}

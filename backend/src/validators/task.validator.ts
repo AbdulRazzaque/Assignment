@@ -3,6 +3,19 @@ import { z } from 'zod';
 export const taskStatusEnum = z.enum(['TODO', 'IN_PROGRESS', 'COMPLETED']);
 export const taskPriorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH']);
 
+const subtaskSchema = z.object({
+  _id: z.string().optional(),
+  title: z.string().trim().min(1, 'Subtask title cannot be empty').max(200),
+  completed: z.boolean().default(false),
+});
+
+const objectIdOrNull = z
+  .string()
+  .trim()
+  .nullable()
+  .optional()
+  .transform((val) => (val && val.length > 0 ? val : null));
+
 export const createTaskSchema = z.object({
   title: z
     .string({ required_error: 'Task title is required' })
@@ -17,6 +30,9 @@ export const createTaskSchema = z.object({
   status: taskStatusEnum.default('TODO'),
   priority: taskPriorityEnum.default('MEDIUM'),
   category: z.string().trim().max(50).default('General'),
+  tags: z.array(z.string().trim().min(1).max(32)).max(15).default([]),
+  projectId: objectIdOrNull,
+  subtasks: z.array(subtaskSchema).max(30).default([]),
   dueDate: z
     .string({ required_error: 'Due date is required' })
     .refine((val) => !isNaN(Date.parse(val)), {
@@ -41,6 +57,9 @@ export const updateTaskSchema = z
     status: taskStatusEnum.optional(),
     priority: taskPriorityEnum.optional(),
     category: z.string().trim().max(50).optional(),
+    tags: z.array(z.string().trim().min(1).max(32)).max(15).optional(),
+    projectId: objectIdOrNull,
+    subtasks: z.array(subtaskSchema).max(30).optional(),
     dueDate: z
       .string()
       .refine((val) => !isNaN(Date.parse(val)), {
@@ -73,6 +92,8 @@ export const taskQuerySchema = z.object({
   status: taskStatusEnum.optional(),
   priority: taskPriorityEnum.optional(),
   category: z.string().trim().optional(),
+  tag: z.string().trim().optional(),
+  projectId: z.string().trim().optional(),
   search: z.string().trim().optional(),
   dueDateFrom: z.string().optional(),
   dueDateTo: z.string().optional(),

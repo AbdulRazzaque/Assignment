@@ -169,6 +169,15 @@ export class DashboardService {
       status: task.status,
       priority: task.priority,
       category: task.category || 'General',
+      tags: Array.isArray(task.tags) ? task.tags : [],
+      projectId: task.projectId ? task.projectId.toString() : null,
+      subtasks: Array.isArray(task.subtasks)
+        ? task.subtasks.map((s) => ({
+            _id: s._id ? s._id.toString() : undefined,
+            title: s.title,
+            completed: Boolean(s.completed),
+          }))
+        : [],
       dueDate: task.dueDate,
       userId: task.userId.toString(),
       isOverdue: new Date(task.dueDate) < now && task.status !== 'COMPLETED',
@@ -194,6 +203,15 @@ export class DashboardService {
       status: task.status,
       priority: task.priority,
       category: task.category || 'General',
+      tags: Array.isArray(task.tags) ? task.tags : [],
+      projectId: task.projectId ? task.projectId.toString() : null,
+      subtasks: Array.isArray(task.subtasks)
+        ? task.subtasks.map((s) => ({
+            _id: s._id ? s._id.toString() : undefined,
+            title: s.title,
+            completed: Boolean(s.completed),
+          }))
+        : [],
       dueDate: task.dueDate,
       userId: task.userId.toString(),
       isOverdue: false,

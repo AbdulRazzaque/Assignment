@@ -1,6 +1,12 @@
 import mongoose, { Document, Schema, Model } from 'mongoose';
 import { TaskPriority, TaskStatus } from '../types';
 
+export interface ISubtask {
+  _id?: mongoose.Types.ObjectId;
+  title: string;
+  completed: boolean;
+}
+
 export interface ITaskDocument extends Document {
   _id: mongoose.Types.ObjectId;
   title: string;
@@ -8,11 +14,30 @@ export interface ITaskDocument extends Document {
   status: TaskStatus;
   priority: TaskPriority;
   category: string;
+  tags: string[];
+  projectId?: mongoose.Types.ObjectId | null;
+  subtasks: ISubtask[];
   dueDate: Date;
   userId: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
+
+const SubtaskSchema = new Schema<ISubtask>(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+    completed: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: true }
+);
 
 const TaskSchema = new Schema<ITaskDocument>(
   {
@@ -54,6 +79,21 @@ const TaskSchema = new Schema<ITaskDocument>(
       maxlength: [50, 'Category cannot exceed 50 characters'],
       index: true,
     },
+    tags: {
+      type: [String],
+      default: [],
+      index: true,
+    },
+    projectId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Project',
+      default: null,
+      index: true,
+    },
+    subtasks: {
+      type: [SubtaskSchema],
+      default: [],
+    },
     dueDate: {
       type: Date,
       required: [true, 'Due date is required'],
@@ -82,6 +122,8 @@ TaskSchema.index({ userId: 1, status: 1 });
 TaskSchema.index({ userId: 1, dueDate: 1 });
 TaskSchema.index({ userId: 1, priority: 1 });
 TaskSchema.index({ userId: 1, createdAt: -1 });
+TaskSchema.index({ userId: 1, projectId: 1 });
+TaskSchema.index({ userId: 1, tags: 1 });
 
 export const Task: Model<ITaskDocument> =
   mongoose.models.Task || mongoose.model<ITaskDocument>('Task', TaskSchema);

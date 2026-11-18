@@ -1,5 +1,9 @@
 export type TaskStatus = 'TODO' | 'IN_PROGRESS' | 'COMPLETED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type ProjectStatus = 'ACTIVE' | 'ON_HOLD' | 'COMPLETED';
+export type TeamMemberStatus = 'ACTIVE' | 'INVITED' | 'AWAY';
+export type SupportCategory = 'BUG' | 'FEATURE' | 'ACCOUNT' | 'SECURITY' | 'OTHER';
+export type SupportStatus = 'OPEN' | 'IN_REVIEW' | 'RESOLVED';
 
 export interface User {
   id: string;
@@ -9,6 +13,12 @@ export interface User {
   avatar?: string;
 }
 
+export interface SubtaskItem {
+  _id?: string;
+  title: string;
+  completed: boolean;
+}
+
 export interface Task {
   _id: string;
   title: string;
@@ -16,11 +26,71 @@ export interface Task {
   status: TaskStatus;
   priority: TaskPriority;
   category?: string;
+  tags?: string[];
+  projectId?: string | null;
+  subtasks?: SubtaskItem[];
   dueDate: string;
   userId: string;
   isOverdue: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Project {
+  _id: string;
+  name: string;
+  description: string;
+  color: string;
+  status: ProjectStatus;
+  dueDate: string | null;
+  userId: string;
+  totalTasks: number;
+  completedTasks: number;
+  inProgressTasks: number;
+  pendingTasks: number;
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TagItem {
+  _id: string;
+  name: string;
+  color: string;
+  description: string;
+  usageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamMember {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  status: TeamMemberStatus;
+  avatarColor: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SupportTicket {
+  _id: string;
+  subject: string;
+  category: SupportCategory;
+  priority: TaskPriority;
+  message: string;
+  status: SupportStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SystemHealth {
+  status: string;
+  database?: string;
+  uptimeSeconds?: number;
+  timestamp: string;
 }
 
 export interface PaginationMeta {
@@ -79,6 +149,8 @@ export interface TaskQueryParams {
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;
+  tag?: string;
+  projectId?: string;
   dueDateFrom?: string;
   dueDateTo?: string;
   search?: string;
@@ -92,6 +164,9 @@ export interface CreateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;
+  tags?: string[];
+  projectId?: string | null;
+  subtasks?: SubtaskItem[];
   dueDate: string;
 }
 
@@ -101,5 +176,8 @@ export interface UpdateTaskInput {
   status?: TaskStatus;
   priority?: TaskPriority;
   category?: string;
+  tags?: string[];
+  projectId?: string | null;
+  subtasks?: SubtaskItem[];
   dueDate?: string;
 }

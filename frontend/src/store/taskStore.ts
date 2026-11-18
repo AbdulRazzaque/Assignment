@@ -1,14 +1,36 @@
 import { create } from 'zustand';
-import { Task, PaginationMeta, TaskQueryParams, CreateTaskInput, UpdateTaskInput, TaskStatus, TaskPriority } from '../types';
+import {
+  Task,
+  PaginationMeta,
+  TaskQueryParams,
+  CreateTaskInput,
+  UpdateTaskInput,
+  TaskStatus,
+  TaskPriority,
+  Project,
+  TagItem,
+} from '../types';
 import { taskService } from '../services/task.service';
+import { projectService, tagService } from '../services/workspace.service';
+
+export interface DraftTaskDefaults {
+  category?: string;
+  projectId?: string | null;
+  tags?: string[];
+  status?: TaskStatus;
+  priority?: TaskPriority;
+}
 
 interface TaskState {
   tasks: Task[];
+  projects: Project[];
+  tags: TagItem[];
   pagination: PaginationMeta | null;
   filters: TaskQueryParams;
   isLoading: boolean;
   error: string | null;
   selectedTask: Task | null;
+  draftDefaults: DraftTaskDefaults | null;
   isModalOpen: boolean;
   isDeleteModalOpen: boolean;
   viewMode: 'table' | 'kanban' | 'calendar';
@@ -17,10 +39,14 @@ interface TaskState {
   resetFilters: () => void;
   setViewMode: (mode: 'table' | 'kanban' | 'calendar') => void;
   setSelectedTask: (task: Task | null) => void;
+  setDraftDefaults: (defaults: DraftTaskDefaults | null) => void;
   setIsModalOpen: (open: boolean) => void;
   setIsDeleteModalOpen: (open: boolean) => void;
+  openCreateModal: (defaults?: DraftTaskDefaults) => void;
 
   fetchTasks: () => Promise<void>;
+  fetchProjects: () => Promise<void>;
+  fetchTags: () => Promise<void>;
   createTask: (data: CreateTaskInput) => Promise<void>;
   updateTask: (id: string, data: UpdateTaskInput) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -37,11 +63,14 @@ const initialFilters: TaskQueryParams = {
 
 export const useTaskStore = create<TaskState>((set, get) => ({
   tasks: [],
+  projects: [],
+  tags: [],
   pagination: null,
   filters: initialFilters,
   isLoading: false,
   error: null,
   selectedTask: null,
+  draftDefaults: null,
   isModalOpen: false,
   isDeleteModalOpen: false,
   viewMode: 'table',
@@ -60,8 +89,23 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   setViewMode: (viewMode) => set({ viewMode }),
   setSelectedTask: (selectedTask) => set({ selectedTask }),
-  setIsModalOpen: (isModalOpen) => set({ isModalOpen }),
+  setDraftDefaults: (draftDefaults) => set({ draftDefaults }),
+  setIsModalOpen: (isModalOpen) => {
+    if (!isModalOpen) {
+      set({ isModalOpen: false, draftDefaults: null });
+    } else {
+      set({ isModalOpen: true });
+    }
+  },
   setIsDeleteModalOpen: (isDeleteModalOpen) => set({ isDeleteModalOpen }),
+
+  openCreateModal: (defaults) => {
+    set({
+      selectedTask: null,
+      draftDefaults: defaults || null,
+      isModalOpen: true,
+    });
+  },
 
   fetchTasks: async () => {
     try {
@@ -78,12 +122,30 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
+  fetchProjects: async () => {
+    try {
+      const projects = await projectService.getProjects();
+      set({ projects });
+    } catch {
+      // silent fallback
+    }
+  },
+
+  fetchTags: async () => {
+    try {
+      const tags = await tagService.getTags();
+      set({ tags });
+    } catch {
+      // silent fallback
+    }
+  },
+
   createTask: async (data) => {
     try {
       set({ isLoading: true, error: null });
       await taskService.createTask(data);
-      set({ isModalOpen: false, isLoading: false });
-      await get().fetchTasks();
+      set({ isModalOpen: false, draftDefaults: null, isLoading: false });
+      await Promise.all([get().fetchTasks(), get().fetchProjects(), get().fetchTags()]);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to create task';
       set({ error: message, isLoading: false });
@@ -95,8 +157,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       await taskService.updateTask(id, data);
-      set({ isModalOpen: false, selectedTask: null, isLoading: false });
-      await get().fetchTasks();
+      set({ isModalOpen: false, selectedTask: null, draftDefaults: null, isLoading: false });
+      await Promise.all([get().fetchTasks(), get().fetchProjects(), get().fetchTags()]);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to update task';
       set({ error: message, isLoading: false });
@@ -109,7 +171,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       set({ isLoading: true, error: null });
       await taskService.deleteTask(id);
       set({ isDeleteModalOpen: false, selectedTask: null, isLoading: false });
-      await get().fetchTasks();
+      await Promise.all([get().fetchTasks(), get().fetchProjects(), get().fetchTags()]);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to delete task';
       set({ error: message, isLoading: false });
@@ -118,7 +180,6 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   updateStatus: async (id, status) => {
-    // Optimistic UI update
     const previousTasks = get().tasks;
     set((state) => ({
       tasks: state.tasks.map((t) => (t._id === id ? { ...t, status } : t)),
@@ -126,9 +187,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
     try {
       await taskService.updateStatus(id, status);
-      await get().fetchTasks();
+      await Promise.all([get().fetchTasks(), get().fetchProjects()]);
     } catch (err: unknown) {
-      // Revert optimistic update
       set({ tasks: previousTasks });
       const message = err instanceof Error ? err.message : 'Failed to update status';
       set({ error: message });
