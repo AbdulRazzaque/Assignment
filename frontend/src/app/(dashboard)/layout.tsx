@@ -7,7 +7,6 @@ import { TopHeader } from '../../components/layout/top-header';
 import { useAuthStore } from '../../store/authStore';
 import { TaskModal } from '../../components/tasks/task-modal';
 import { DeleteTaskDialog } from '../../components/tasks/delete-dialog';
-import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -40,11 +39,15 @@ export default function DashboardLayout({
 
   if (checking) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-[#F4F5F9]">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-[#7C3AED]" />
-          <p className="text-xs font-semibold text-slate-500">
-            Authenticating workspace session...
+      <div className="flex min-h-screen w-full items-center justify-center bg-[#0D0D14]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#6D28D9] to-[#8B5CF6] text-white shadow-glow animate-pulse">
+            <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+              <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+            </svg>
+          </div>
+          <p className="text-xs font-semibold tracking-wide text-slate-400">
+            Loading TaskFlow Pro workspace...
           </p>
         </div>
       </div>
@@ -52,21 +55,28 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F5F9] text-slate-900 antialiased flex">
-      {/* Persistent Left Sidebar matching Image 3 */}
+    <div className="min-h-screen bg-[#F6F7FB] text-slate-900 antialiased flex relative">
+      {/* Subtle Ambient Top Glow */}
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 h-80 opacity-60 z-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 70% 50% at 65% -10%, rgba(124, 58, 237, 0.08), transparent 70%)',
+        }}
+      />
+
+      {/* Persistent Left Sidebar */}
       <Sidebar
         isMobileOpen={isMobileMenuOpen}
         onMobileClose={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Main App Column */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header matching Image 3 & Image 4 */}
+      {/* Main Content Shell */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <TopHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
 
-        {/* Scrollable Main Content */}
         <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          <div className="mx-auto max-w-7xl">{children}</div>
+          <div className="mx-auto max-w-[1440px] animate-slide-up">{children}</div>
         </main>
       </div>
 

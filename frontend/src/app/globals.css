@@ -4,17 +4,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 20% 98%;
     --foreground: 222.2 84% 4.9%;
   }
 
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-[#F6F7FB] text-slate-900 antialiased;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
+    letter-spacing: -0.02em;
   }
 }
 
-/* Custom subtle scrollbar */
+@layer utilities {
+  .bg-grid-subtle {
+    background-image: radial-gradient(rgba(124, 58, 237, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .bg-grid-dark {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  .glass-surface {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .card-premium {
+    @apply rounded-2xl bg-white border border-slate-200/75 shadow-card transition-all duration-200;
+  }
+
+  .card-premium-hover {
+    @apply rounded-2xl bg-white border border-slate-200/75 shadow-card hover:shadow-elevated hover:border-purple-200/80 hover:-translate-y-0.5 transition-all duration-200;
+  }
+}
+
+/* Refined custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -25,10 +59,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(148, 163, 184, 0.45);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(100, 116, 139, 0.65);
 }

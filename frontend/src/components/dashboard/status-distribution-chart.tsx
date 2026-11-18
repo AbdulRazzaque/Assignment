@@ -15,50 +15,81 @@ export function StatusDistributionChart({
   completionRate,
   overdueCount = 0,
 }: StatusDistributionChartProps) {
-  const pendingCount =
-    distribution.find((d) => d.status === 'TODO')?.count || 0;
-  const approvedCount =
-    distribution.find((d) => d.status === 'COMPLETED')?.count || 0;
-  const inProgressCount =
-    distribution.find((d) => d.status === 'IN_PROGRESS')?.count || 0;
+  const pendingCount = distribution.find((d) => d.status === 'TODO')?.count || 0;
+  const approvedCount = distribution.find((d) => d.status === 'COMPLETED')?.count || 0;
+  const inProgressCount = distribution.find((d) => d.status === 'IN_PROGRESS')?.count || 0;
 
-  const total = pendingCount + approvedCount + inProgressCount + overdueCount;
+  const total = pendingCount + approvedCount + inProgressCount;
 
-  // Real percentages
-  const completedPct = total > 0 ? Math.round((approvedCount / total) * 100) : 0;
-  const inProgressPct = total > 0 ? Math.round((inProgressCount / total) * 100) : 0;
-  const pendingPct = total > 0 ? Math.round((pendingCount / total) * 100) : 0;
-  const overduePct = total > 0 ? Math.round((overdueCount / total) * 100) : 0;
+  const rows = [
+    {
+      name: 'Completed',
+      count: approvedCount,
+      pct: total > 0 ? Math.round((approvedCount / total) * 100) : 0,
+      color: '#7C3AED',
+      bg: 'bg-purple-50 text-[#7C3AED]',
+    },
+    {
+      name: 'In Progress',
+      count: inProgressCount,
+      pct: total > 0 ? Math.round((inProgressCount / total) * 100) : 0,
+      color: '#3B82F6',
+      bg: 'bg-blue-50 text-blue-600',
+    },
+    {
+      name: 'Pending',
+      count: pendingCount,
+      pct: total > 0 ? Math.round((pendingCount / total) * 100) : 0,
+      color: '#F59E0B',
+      bg: 'bg-amber-50 text-amber-600',
+    },
+    {
+      name: 'Overdue',
+      count: overdueCount,
+      pct: total > 0 ? Math.round((overdueCount / total) * 100) : 0,
+      color: '#EF4444',
+      bg: 'bg-rose-50 text-rose-600',
+    },
+  ];
 
   const chartData =
     total === 0
       ? [{ name: 'No Tasks', value: 1, color: '#E2E8F0' }]
       : [
-          { name: 'Completed', value: approvedCount, color: '#7C3AED' }, // purple
-          { name: 'In Progress', value: inProgressCount, color: '#3B82F6' }, // blue
-          { name: 'Pending', value: pendingCount, color: '#F59E0B' }, // amber
-          { name: 'Overdue', value: overdueCount, color: '#EF4444' }, // red
+          { name: 'Completed', value: approvedCount, color: '#7C3AED' },
+          { name: 'In Progress', value: inProgressCount, color: '#3B82F6' },
+          { name: 'Pending', value: pendingCount, color: '#F59E0B' },
         ].filter((d) => d.value > 0);
 
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-white p-5 sm:p-6 shadow-xs border border-slate-100">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm sm:text-base font-bold text-slate-900">
-          Task Status Distribution
-        </h3>
+    <div className="card-premium p-6 flex flex-col justify-between h-full">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-base font-extrabold text-slate-900">
+            Status Distribution
+          </h3>
+          <p className="text-xs text-slate-400 font-medium mt-0.5">
+            Real-time workflow health breakdown
+          </p>
+        </div>
+        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-extrabold tabular-nums">
+          {total} total
+        </span>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 my-auto py-2">
-        {/* Donut Chart with Center Text matching Screen 4 */}
-        <div className="relative flex h-48 w-48 shrink-0 items-center justify-center">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-5 my-auto py-1">
+        {/* Donut Chart with Center Completion Gauge */}
+        <div className="relative flex h-44 w-44 shrink-0 items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData}
-                innerRadius={55}
-                outerRadius={75}
-                paddingAngle={total > 0 ? 3 : 0}
+                innerRadius={56}
+                outerRadius={76}
+                paddingAngle={total > 0 ? 4 : 0}
+                cornerRadius={6}
                 dataKey="value"
+                stroke="none"
               >
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
@@ -67,61 +98,58 @@ export function StatusDistributionChart({
               {total > 0 && (
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#1E293B',
+                    backgroundColor: '#0F0F1C',
                     borderRadius: '0.75rem',
-                    border: 'none',
+                    border: '1px solid rgba(255,255,255,0.1)',
                     color: '#fff',
                     fontSize: '12px',
+                    fontWeight: 700,
                   }}
                 />
               )}
             </PieChart>
           </ResponsiveContainer>
 
-          {/* Center Metric matching Screen 4: e.g. "248 Tasks" */}
           <div className="pointer-events-none absolute flex flex-col items-center justify-center text-center">
-            <span className="text-2xl font-black text-slate-900 leading-tight">
-              {total}
+            <span className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums font-display">
+              {completionRate}%
             </span>
-            <span className="text-[11px] font-bold text-slate-400">
-              Tasks
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">
+              Done
             </span>
           </div>
         </div>
 
-        {/* Legend matching Screen 4 */}
-        <div className="flex flex-col gap-2.5 text-xs font-semibold w-full sm:w-auto">
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#7C3AED]" />
-              <span className="text-slate-600">Completed</span>
+        {/* Rich Progress Legend */}
+        <div className="flex flex-col gap-3 w-full">
+          {rows.map((row) => (
+            <div key={row.name} className="space-y-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2 font-bold text-slate-700">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: row.color }}
+                  />
+                  {row.name}
+                </span>
+                <span className="font-extrabold text-slate-900 tabular-nums">
+                  {row.count}{' '}
+                  <span className="text-slate-400 font-semibold text-[11px]">
+                    ({row.pct}%)
+                  </span>
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${row.pct}%`,
+                    backgroundColor: row.color,
+                  }}
+                />
+              </div>
             </div>
-            <span className="font-extrabold text-slate-900">{completedPct}%</span>
-          </div>
-
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#3B82F6]" />
-              <span className="text-slate-600">In Progress</span>
-            </div>
-            <span className="font-extrabold text-slate-900">{inProgressPct}%</span>
-          </div>
-
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#F59E0B]" />
-              <span className="text-slate-600">Pending</span>
-            </div>
-            <span className="font-extrabold text-slate-900">{pendingPct}%</span>
-          </div>
-
-          <div className="flex items-center justify-between sm:justify-start gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#EF4444]" />
-              <span className="text-slate-600">Overdue</span>
-            </div>
-            <span className="font-extrabold text-slate-900">{overduePct}%</span>
-          </div>
+          ))}
         </div>
       </div>
     </div>
